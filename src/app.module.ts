@@ -6,8 +6,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import config from 'ormconfig';
 import { User } from './models/create-user-request.model';
 import { JwtModule } from '@nestjs/jwt';
-import { LocalStrategy } from './strategies/local-strategy';
-import { JwtStrategy } from './strategies/jwt-strategy';
+import { LocalStrategy } from './strategy/local-strategy';
+import { JwtStrategy } from './strategy/jwt-strategy';
 import { Order } from './models/create-order-request.model';
 
 @Module({

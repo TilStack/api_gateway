@@ -57,7 +57,7 @@ export class AppService {
 
   async validatedUser(username:string,password:string){
     try {
-      const user=await this.userRepo.findOne({where:{email:username}})  
+      const user = await this.userRepo.findOne({where:{email:username}})  
       if (user && (await bcrypt.compare(password, user.password))) {
         const { password, ...result } = user
         return result
@@ -66,6 +66,7 @@ export class AppService {
       }    
     } catch (error) {
       console.log(error)
+      throw new HttpException('...', HttpStatus.BAD_REQUEST)
     }
   }
 
@@ -74,7 +75,7 @@ export class AppService {
       const payload={
         username:user.email,
         sub:{
-          nom:user.name
+          name:user.name
         }
       }
       return {
@@ -82,8 +83,26 @@ export class AppService {
       }
     } catch (error) {
       console.log(error)
+      throw new HttpException('Error', HttpStatus.BAD_REQUEST)
     }
   }  
+  async refreshToken(user:User){
+    try {
+        const payLoad={
+            username:user.email,
+            sub:{
+                phone:user.phoneNumber
+            }            
+        };
+        return {
+            ...user,
+            accessToken: this.jwtService.sign(payLoad),
+        };
+    } catch (error) {
+        // Capturer l'erreur et renvoyer une exception HTTP
+        throw new HttpException('Error during token refresh', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 
   async create(user:User){
     return await this.userRepo.save(user)
