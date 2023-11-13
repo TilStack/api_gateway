@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './models/create-user-request.model';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { UserDto } from './models/dto/user.dto';
+import { UpdateUserDto, UserDto } from './models/dto/user.dto';
 import { UserCreatedEvent } from './models/events/user_created.event';
 import { GetUserRequest } from './models/events/get_user.event';
 import { firstValueFrom } from 'rxjs';
@@ -124,6 +124,12 @@ export class AppService {
     } catch (error) {
       console.log(error);
       throw new HttpException('An error occurred', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async updateUser(token:string,updateUserDto:UpdateUserDto){
+    return {
+      
     }
   }
   

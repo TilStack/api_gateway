@@ -1,9 +1,9 @@
 import { Body, Controller, Get, HttpException, HttpStatus, Inject, 
   OnModuleInit, Post,Request, UseGuards, UploadedFile, UseInterceptors, 
-  BadRequestException, Res, Param } from '@nestjs/common';
+  BadRequestException, Res, Param,Put } from '@nestjs/common';
 import { AppService } from './app.service';
 import { CreateOrderRequest } from './models/dto/order.dto';
-import { UserDto } from './models/dto/user.dto';
+import { UserDto,UpdateUserDto } from './models/dto/user.dto';
 import { LocalAuthGuard } from './guards/local-jwt.guards';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ClientKafka } from '@nestjs/microservices';
@@ -54,8 +54,7 @@ export class AppController implements OnModuleInit{
     }
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Post('user/upload')
+  @Post('upload')
   @UseInterceptors(FileInterceptor('file', {
       storage: diskStorage({
           destination: './uploads/profile',
@@ -85,10 +84,22 @@ export class AppController implements OnModuleInit{
       }
   }
 
-  @Get('user/profile/:filename')
-    async getImage(@Param('filename') filename,@Res() res:Response){
-        res.sendFile(filename,{root:'./uploads/profile'})
+  @Put('user/')
+  async update(@Request() req, @Body() updateUserDto: UpdateUserDto) {
+    return await this.updateUser(req, updateUserDto);
   }
 
-
+  async updateUser(@Request() req, @Body() updateUserDto: UpdateUserDto) {
+    const token = req.headers.authorization.split(' ')[1];
+    const user = await this.appService.getUserInfo(token);
+  
+    if (!user) {
+      throw new HttpException('Utilisateur non trouvé', HttpStatus.NOT_FOUND);
+    }
+  
+    await this.appService.updateUser(user.id, updateUserDto);
+  
+    return user;
+  }
+  
 }
