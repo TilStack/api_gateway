@@ -8,14 +8,15 @@ import { LocalAuthGuard } from './guards/local-jwt.guards';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ClientKafka } from '@nestjs/microservices';
 import { diskStorage } from 'multer';
-import { Response } from "express";
 import { JwtAuthGuard } from './guards/jwt-auth.guards';
+import { JwtStrategy } from './strategy/jwt-strategy';
 
 @Controller('')
 export class AppController implements OnModuleInit{
-  constructor(private readonly appService: AppService, @Inject('AUTH_SERVICE') private readonly authClient:ClientKafka,) {}
+  constructor(private readonly appService: AppService, @Inject('AUTH_SERVICE') private readonly authClient:ClientKafka,@Inject(JwtStrategy) private readonly jwtStrategy: JwtStrategy) {}
   onModuleInit() {
-    this.authClient.subscribeToResponseOf('create_user')
+    this.authClient.subscribeToResponseOf('create_user'),
+    this.authClient.subscribeToResponseOf('update_user')
   }
 
   @Get()
@@ -34,9 +35,9 @@ export class AppController implements OnModuleInit{
     return user
   }
 
+  @UseGuards(LocalAuthGuard)
   @Post('user/login')
   async Login(@Request() req){
-    console.log(req.body)
     return await this.appService.login(req.user)
   }
 
@@ -45,7 +46,6 @@ export class AppController implements OnModuleInit{
     if(req.headers.authorization && req.headers.authorization.startsWith('Bearer ')){
       const token= req.headers.authorization.split(' ')[1]
       const user= await this.appService.getUserInfo(token)
-
       if(user){
         return user
       } else {
@@ -84,22 +84,12 @@ export class AppController implements OnModuleInit{
       }
   }
 
-  @Put('user/')
-  async update(@Request() req, @Body() updateUserDto: UpdateUserDto) {
-    return await this.updateUser(req, updateUserDto);
-  }
+  @Get('get')
+  async getHello2(@Request() req) {
+      const payload = await this.jwtStrategy.validate(req.headers.authorization);
+      const username = payload.username;
 
-  async updateUser(@Request() req, @Body() updateUserDto: UpdateUserDto) {
-    const token = req.headers.authorization.split(' ')[1];
-    const user = await this.appService.getUserInfo(token);
-  
-    if (!user) {
-      throw new HttpException('Utilisateur non trouvé', HttpStatus.NOT_FOUND);
-    }
-  
-    await this.appService.updateUser(user.id, updateUserDto);
-  
-    return user;
+      return `Bonjour ${username} !`;
   }
   
 }

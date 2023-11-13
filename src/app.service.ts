@@ -86,6 +86,7 @@ export class AppService {
       throw new HttpException('Error', HttpStatus.BAD_REQUEST)
     }
   }  
+  
   async refreshToken(user:User){
     try {
         const payLoad={
@@ -102,10 +103,6 @@ export class AppService {
         // Capturer l'erreur et renvoyer une exception HTTP
         throw new HttpException('Error during token refresh', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-  }
-
-  async create(user:User){
-    return await this.userRepo.save(user)
   }
 
   async getUserInfo(token: string) {
