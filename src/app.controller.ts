@@ -10,6 +10,7 @@ import { ClientKafka } from '@nestjs/microservices';
 import { diskStorage } from 'multer';
 import { JwtAuthGuard } from './guards/jwt-auth.guards';
 import { JwtStrategy } from './strategy/jwt-strategy';
+import { startWith } from 'rxjs';
 
 @Controller('')
 export class AppController implements OnModuleInit{
@@ -84,12 +85,16 @@ export class AppController implements OnModuleInit{
       }
   }
 
-  @Get('get')
-  async getHello2(@Request() req) {
-      const payload = await this.jwtStrategy.validate(req.headers.authorization);
-      const username = payload.username;
 
-      return `Bonjour ${username} !`;
+  @UseGuards(JwtAuthGuard)
+  @Put('user/update')
+  async updateUser(@Request() req,@Body() userDto:UpdateUserDto){
+    if(req.headers.authorization && req.headers.authorization.startWith('Bearer ')){
+      const token=req.headers.authorization.split(' ')[1]
+      const user= await this.appService.updateUser(token,userDto)
+    }else{
+      throw new HttpException('Erreur de la modification',HttpStatus.INTERNAL_SERVER_ERROR)
+    }
   }
   
 }

@@ -125,9 +125,5 @@ export class AppService {
   }
 
   async updateUser(token:string,updateUserDto:UpdateUserDto){
-    return {
-      
-    }
   }
-  
 }
